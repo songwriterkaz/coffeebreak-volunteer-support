@@ -18,6 +18,8 @@
     <button data-v="board">Board</button>
     <button data-v="msgs">Messages <span id="msgcount" class="pill" hidden></span></button>
     <button data-v="safety">Safety</button>
+    <button data-v="checks">Checks</button>
+    <button data-v="sponsor">Sponsor &amp; Fund Us</button>
     <button data-v="about">About</button>
   </nav>
 </header>
@@ -48,21 +50,30 @@
 <section id="v-help" class="view">
   <h2>I want to help</h2>
   <p class="note">Your profile shows your first name and suburb only. Your full name, phone and email stay private until you agree to share them with someone.</p>
-  <form id="f-help" autocomplete="on">
+  <form id="f-help" autocomplete="on" novalidate>
     <fieldset><legend>Public (shown on the board)</legend>
       <label>First name<input name="firstName" required maxlength="30"></label>
       <label>Suburb<input name="suburb" required maxlength="40" list="suburbs" placeholder="e.g. Maitland"></label>
       <label>State<select name="state"></select></label>
       <div class="lbl">Skills I can offer</div><div class="checks" data-group="skills"></div>
       <div class="lbl">When I'm available</div><div class="checks" data-group="availability"></div>
-      <div class="lbl">Checks I hold (self-declared)</div><div class="checks" data-group="checks"></div>
+      <label class="tick"><input type="checkbox" name="firstAid"> I hold a current first aid certificate (optional, shown on the board)</label>
       <label>A little about me<textarea name="about" maxlength="300" rows="3" placeholder="Friendly, retired, happy to drive, love gardening..."></textarea></label>
     </fieldset>
+    <fieldset class="req"><legend>Required checks (private)</legend>
+      <p class="note"><b>Every volunteer must provide a Working With Children Check and a National Police Check to be listed.</b> In NSW a WWCC is required by law for child-related volunteering, and it's free for volunteers. <a href="#checks" data-go="checks">How to get your checks</a></p>
+      <label>WWCC number<input name="wwccNumber" required maxlength="20" placeholder="e.g. WWC1234567V" autocapitalize="characters"></label>
+      <label>WWCC expiry date<input name="wwccExpiry" type="date" required></label>
+      <label>Police check certificate date<input name="policeDate" type="date" required></label>
+      <label>Police check certificate (PDF or photo)<input name="policeFile" type="file" required accept="application/pdf,image/*"></label>
+      <p class="note">These stay private on this device. Your WWCC number and expiry are only shown to someone after you both agree to share contact details, so they can verify it. The certificate file never leaves this device. Show the original in person. Your listing is labelled "Checks provided (not yet verified by Coffeebreak)".</p>
+    </fieldset>
     <fieldset><legend>Private (only shared when both agree)</legend>
-      <label>Full name<input name="fullName" maxlength="60"></label>
+      <label>Full name (as on your WWCC)<input name="fullName" required maxlength="60"></label>
       <label>Phone<input name="phone" type="tel" maxlength="20"></label>
       <label>Email<input name="email" type="email" maxlength="80"></label>
     </fieldset>
+    <label class="tick"><input type="checkbox" name="truthful" required> The check details I've entered are true and current, and I'll show the originals when asked.</label>
     <label class="tick"><input type="checkbox" name="agree" required> I have read the <a href="#safety" data-go="safety">safety guidelines</a>. I understand I'm a volunteer, not an NDIS provider, and I won't handle anyone's money.</label>
     <button class="big" type="submit">Post my volunteer profile</button>
     <p class="msg" id="m-help"></p>
@@ -72,6 +83,7 @@
 <section id="v-need" class="view">
   <h2>I need a hand</h2>
   <p class="note">Your request shows your first name and suburb only. Please don't include health details or other people's names.</p>
+  <div class="box checksnote"><b>About volunteers' checks.</b> Every volunteer on the board has provided a Working With Children Check and a National Police Check, but Coffeebreak has not verified them yet. You can ask to see a volunteer's checks before you start: sight the original police certificate, and verify their WWCC with the Office of the Children's Guardian using their family name, date of birth and WWC number. <a href="#checks" data-go="checks">How to verify</a></div>
   <form id="f-need" autocomplete="on">
     <fieldset><legend>Public (shown on the board)</legend>
       <label>First name<input name="firstName" required maxlength="30"></label>
@@ -125,9 +137,15 @@
   </ul></div>
   <div class="box"><h3>For volunteers</h3><ul>
     <li>Volunteers here are not NDIS providers and are not paid. This is informal, community help.</li>
-    <li>We recommend a Working With Children Check and a police check, plus first aid if you can.</li>
-    <li>The "checks" badge is <b>self-declared</b>. Coffeebreak does not verify checks. Ask to see them before you start.</li>
+    <li>To be listed you must provide a <b>Working With Children Check</b> and a <b>National Police Check</b>. In NSW a WWCC is required by law for child-related volunteering. First aid is a bonus.</li>
+    <li>Volunteers are labelled <b>"Checks provided (not yet verified by Coffeebreak)"</b>. Coffeebreak doesn't check them yet, so be ready to show your originals.</li>
     <li>Use your own car insurance if you drive someone, and stay within what you're comfortable doing.</li>
+  </ul></div>
+  <div class="box checksnote"><h3>For families and carers</h3><ul>
+    <li>You can always ask to see a volunteer's checks before they start. A good volunteer won't mind.</li>
+    <li>Sight the original police check certificate and photo ID.</li>
+    <li>WWCC status can be verified online with the Office of the Children's Guardian (OCG). Organisations use the OCG employer portal. Parents and carers engaging someone for their child can use the OCG verify form or the Service NSW app. You need their family name, date of birth and WWC number. <a href="#checks" data-go="checks">How to verify</a></li>
+    <li>Only go ahead with someone whose status is "Cleared".</li>
   </ul></div>
   <div class="box"><h3>Report a concern</h3>
     <p>Every listing has a <b>Report a concern</b> button. Reported listings are hidden straight away on your device.</p>
@@ -136,13 +154,84 @@
   </div>
 </section>
 
+<section id="v-checks" class="view">
+  <h2>Checks: police check and WWCC</h2>
+  <p>Every volunteer on Coffeebreak Volunteer Support must provide both checks below. They help keep everyone safe.</p>
+  <div class="box"><h3>National Police Check</h3>
+    <p>A National Police Check (a Nationally Coordinated Criminal History Check) shows any criminal history that can be released about you. It's a certificate with an issue date, and it's only current at the time it's issued.</p>
+    <h4>How to get one in NSW</h4><ul>
+      <li><b>NSW Police Force:</b> apply online. It's online only, so there's no counter service at police stations. <a href="https://www.police.nsw.gov.au/npc" target="_blank" rel="noopener">NSW Police: National Police Check</a></li>
+      <li><b>Volunteer rate:</b> a volunteer check through NSW Police costs much less than the standard fee, but you need a secure link from a registered organisation. NSW residents can get one through The Centre for Volunteering. <a href="https://www.volunteering.com.au/resources-tools/national-police-check/" target="_blank" rel="noopener">The Centre for Volunteering: police check</a></li>
+      <li><b>Accredited providers:</b> you can also apply through an ACIC accredited body (many work online, Australia-wide). <a href="https://www.acic.gov.au/accredited-bodies" target="_blank" rel="noopener">ACIC: accredited bodies</a></li>
+    </ul>
+    <p class="note">Fees change, so check the current price on the official page. NSW Police fees and FAQs: <a href="https://portal.police.nsw.gov.au/s/article/Frequently-Asked-Questions" target="_blank" rel="noopener">NSW Police NPC FAQs</a>.</p>
+  </div>
+  <div class="box"><h3>NSW Working With Children Check (WWCC)</h3>
+    <p>The WWCC is a requirement by law for anyone who works or volunteers in child-related work in NSW. It includes a national police check and a review of reportable workplace misconduct. If you're cleared it lasts 5 years, and holders are continuously monitored. There's no card. You get a WWC number by email.</p>
+    <p><b>It's free for volunteers.</b> Choose "Volunteer" as your check purpose.</p>
+    <h4>How to apply</h4><ol>
+      <li>Fill in the online application form. You'll get an APP number by email.</li>
+      <li>Within 28 days, take your APP number and 4 original identity documents to a Service NSW centre to verify your ID.</li>
+      <li>Screening can take up to 4 weeks. When you're cleared, your WWC number is emailed to you.</li>
+    </ol>
+    <p><a class="btnlink" href="https://www.service.nsw.gov.au/transaction/apply-for-a-working-with-children-check" target="_blank" rel="noopener">Apply on Service NSW</a> <a class="btnlink alt" href="https://ocg.nsw.gov.au/working-children-check" target="_blank" rel="noopener">OCG: Working With Children Check</a></p>
+  </div>
+  <div class="box checksnote"><h3>Verifying a volunteer's WWCC</h3>
+    <p>Families can ask to see a volunteer's checks before they start. WWCC status is verified online through the Office of the Children's Guardian (OCG):</p><ul>
+      <li><b>Organisations and employers</b> register with the OCG and verify through the employer portal.</li>
+      <li><b>Parents and carers</b> engaging someone for their child can verify using the OCG online form or the Service NSW app (QR code). You need the person's family name, date of birth and WWC number.</li>
+      <li>Only go ahead with a "Cleared" status. Don't use anyone who is barred or not found.</li>
+    </ul>
+    <p><a href="https://ocg.nsw.gov.au/parents-and-carers/what-parents-need-know-about-working-children-check" target="_blank" rel="noopener">OCG: what parents need to know</a> · <a href="https://www.service.nsw.gov.au/transaction/check-a-working-with-children-check-status" target="_blank" rel="noopener">Service NSW: check a WWCC status</a></p>
+  </div>
+  <div class="box"><h3>Outside NSW</h3>
+    <p>Other states and territories have their own checks, for example the Blue Card in Queensland, the Working with Children Check in Victoria, Western Australia and South Australia, Working with Vulnerable People registration in the ACT and Tasmania, and the Ochre Card in the Northern Territory. Apply through your own state or territory government. A National Police Check can come from your state police or an ACIC accredited body.</p>
+  </div>
+  <p class="note">Coffeebreak Volunteer Support shows volunteers as "Checks provided (not yet verified by Coffeebreak)". Coffeebreak doesn't review the checks yet, so always sight the originals and verify the WWCC yourself.</p>
+</section>
+
+<section id="v-sponsor" class="view">
+  <h2>Sponsor &amp; Fund Us</h2>
+  <div class="hero"><h3>Help people get caring support, outside the NDIS</h3>
+    <p>Coffeebreak Volunteer Support is free to use, for everyone. It connects caring volunteers with people, carers and families who'd like a hand with things like lifts, company, gardening and getting to appointments, without the NDIS paperwork.</p></div>
+  <div class="box"><h3>Where your money goes</h3><ul>
+    <li><b>Running costs:</b> hosting, the website and keeping the board free.</li>
+    <li><b>Safety checks support:</b> helping keep volunteer checks up to date and building a proper review of checks.</li>
+    <li><b>Growing:</b> reaching more people, from Newcastle and the Hunter to more areas across Australia.</li>
+  </ul></div>
+  <div class="box"><h3>Choose a tier</h3>
+    <div class="tabs" id="freq"><button data-f="once" class="on">One-off</button><button data-f="monthly">Monthly</button></div>
+    <div class="tiers" id="tiers">
+      <button class="tier" data-amt="5" data-name="Friend"><b>Friend</b><span>$5</span></button>
+      <button class="tier" data-amt="20" data-name="Supporter"><b>Supporter</b><span>$20</span></button>
+      <button class="tier" data-amt="50" data-name="Sponsor"><b>Sponsor</b><span>$50</span></button>
+      <button class="tier" data-amt="250" data-name="Business Sponsor"><b>Business Sponsor</b><span>$250</span><small>Logo on our sponsors wall</small></button>
+    </div>
+    <label>Your reference (name or business, shows in the payment)<input id="sp-ref" maxlength="18" placeholder="e.g. Jo Smith"></label>
+    <div class="paycard" id="paycard">
+      <div class="pc-top"><img src="logo.png" alt=""><b>Pay by PayID (Teachers Mutual Bank)</b></div>
+      <div class="fld"><span>PayID</span><b>darkokaz@gmx.com</b><button class="small" data-copy="darkokaz@gmx.com">Copy</button></div>
+      <div class="fld"><span>Amount</span><b id="pc-amt">$20 AUD</b><button class="small" id="copyamt">Copy</button></div>
+      <div class="fld"><span>Reference</span><b id="pc-ref">CBVS Supporter</b><button class="small" id="copyref">Copy</button></div>
+      <div id="spqr" class="qr"></div>
+      <p class="note">Scan the QR to get the PayID on your phone, then paste it into your banking app. Open your bank app, choose Pay to PayID, enter darkokaz@gmx.com, the amount and the reference.</p>
+      <p class="note" id="monthlynote" hidden>Monthly: set up a recurring (scheduled) PayID payment in your banking app. You can stop it any time in your bank app.</p>
+    </div>
+  </div>
+  <div class="box"><h3>Sponsors wall</h3>
+    <p>Business Sponsors get their logo here. Put your business name in the payment reference.</p>
+    <div class="wall"><div class="slot">Your logo here</div><div class="slot">Your logo here</div><div class="slot">Your logo here</div></div>
+  </div>
+  <div class="box warn"><b>Please note:</b> Coffeebreak Volunteer Support is not a registered charity, so donations and sponsorships are not tax-deductible. Payments are by PayID only. We never ask for card numbers or bank logins.</div>
+</section>
+
 <section id="v-about" class="view">
   <h2>About</h2>
   <div class="box"><p>Coffeebreak Volunteer Support is a free community board made by Coffeebreak for people who care, want to help, and would rather do it outside the NDIS.</p>
   <p>It is <b>not affiliated with the NDIS or the NDIA</b>, and volunteers here are not NDIS providers.</p>
   <p class="note" id="storenote"></p>
   <button id="wipe" class="alt">Remove everything I posted from this device</button></div>
-  <div class="box pay"><h3>Support Coffeebreak (optional)</h3><p>The board is free. If you'd like to chip in:</p>
+  <div class="box pay"><h3>Support Coffeebreak (optional)</h3><p>The board is free. If you'd like to chip in, see <a href="#sponsor" data-go="sponsor">Sponsor &amp; Fund Us</a>.</p>
   <p class="payid">Pay by PayID (Teachers Mutual Bank): <b>darkokaz@gmx.com</b> <button id="copypay" class="small">Copy</button></p></div>
 </section>
 </main>
@@ -153,6 +242,7 @@
   <img src="logo.png" alt="" class="flogo">
   <p>© Karen O'Brien (Coffeebreak). Karen O'Brien keeps all rights to this app, its design, name and logo. Please don't copy it or make your own version. Third-party brands named belong to their owners. Not affiliated with the NDIS or NDIA. Not an emergency service: call 000, or Lifeline 13 11 14.</p>
 </footer>
+<script src="qrcode.min.js"></script>
 <script src="config.js"></script>
 <script src="app.js"></script>
 </body>

@@ -2,7 +2,6 @@
 "use strict";
 var SKILLS=["Company and a chat","Transport and lifts","Gardening and lawns","Cleaning and tidying","Shopping","Getting to appointments","Tech help","Cooking together","Pet care","Odd jobs"];
 var AVAIL=["Weekday mornings","Weekday afternoons","Weekday evenings","Weekends","Flexible"];
-var CHECKS=["Working With Children Check","Police check","First aid"];
 var STATES=["NSW","ACT","VIC","QLD","SA","WA","TAS","NT"];
 var SUBURBS=["Newcastle","Maitland","Cessnock","Lake Macquarie","Port Stephens","Charlestown","Kurri Kurri","Kotara","Wallsend","Mayfield","Hamilton","Merewether","Belmont","Toronto","Raymond Terrace","Nelson Bay","Singleton","Muswellbrook","Dungog","East Maitland","Rutherford","Cardiff","Warners Bay","Swansea","Morisset","Beresfield","Thornton","Kearsley","Weston","Abermain"];
 var K={pub:"cbv_public",priv:"cbv_private",thr:"cbv_threads",rep:"cbv_reports"};
@@ -23,7 +22,7 @@ function toast(t){var el=$("#toast");el.textContent=t;el.className="show";clearT
 function show(v){
   $$(".view").forEach(function(s){s.classList.toggle("on",s.id==="v-"+v)});
   $$("#nav button").forEach(function(b){b.classList.toggle("on",b.dataset.v===v)});
-  if(v==="board")renderBoard(); if(v==="msgs")renderMsgs(); if(v==="about")renderAbout();
+  if(v==="board")renderBoard(); if(v==="msgs")renderMsgs(); if(v==="about")renderAbout(); if(v==="sponsor")renderSponsor();
   if(location.hash!=="#"+v)history.replaceState(null,"","#"+v);
   window.scrollTo(0,0);
 }
@@ -34,7 +33,7 @@ document.addEventListener("click",function(e){
 
 /* ---------- forms ---------- */
 function fillChecks(){
-  var groups={skills:SKILLS,availability:AVAIL,checks:CHECKS};
+  var groups={skills:SKILLS,availability:AVAIL};
   $$(".checks").forEach(function(box){
     var g=box.dataset.group;
     box.innerHTML=groups[g].map(function(o){return '<label class="chk"><input type="checkbox" name="'+g+'" value="'+esc(o)+'"><span>'+esc(o)+'</span></label>'}).join("");
@@ -44,22 +43,54 @@ function fillChecks(){
   $("#q-type").innerHTML+=SKILLS.map(function(x){return '<option>'+esc(x)+'</option>'}).join("");
   $("#homechips").innerHTML=SKILLS.map(function(x){return '<span class="chip">'+esc(x)+'</span>'}).join("");
 }
+/* ---------- certificate files: IndexedDB on this device only ---------- */
+var DBN="cbv_files", MAXF=5*1024*1024;
+function idb(){return new Promise(function(res,rej){if(!window.indexedDB)return rej(new Error("no idb"));var r=indexedDB.open(DBN,1);r.onupgradeneeded=function(){r.result.createObjectStore("certs")};r.onsuccess=function(){res(r.result)};r.onerror=function(){rej(r.error)}})}
+function idbDo(mode,fn){return idb().then(function(db){return new Promise(function(res,rej){var tx=db.transaction("certs",mode),st=tx.objectStore("certs"),q=fn(st);tx.oncomplete=function(){res(q&&q.result)};tx.onerror=tx.onabort=function(){rej(tx.error)}})})}
+function putCert(id,file){return idbDo("readwrite",function(st){return st.put({name:file.name,type:file.type,size:file.size,blob:file,at:new Date().toISOString()},id)})}
+function getCert(id){return idbDo("readonly",function(st){return st.get(id)})}
+function delCert(id){return idbDo("readwrite",function(st){return st["delete"](id)}).catch(function(){})}
+function clearCerts(){return idbDo("readwrite",function(st){return st.clear()}).catch(function(){})}
+function today(){var d=new Date();return d.getFullYear()+"-"+("0"+(d.getMonth()+1)).slice(-2)+"-"+("0"+d.getDate()).slice(-2)}
+function checkErrors(f){
+  var e=[], n=f.wwccNumber.value.trim().toUpperCase().replace(/\s+/g,""), st=f.state.value, t=today();
+  if(!n)e.push("your Working With Children Check number");
+  else if(st==="NSW"&&!/^WWC\d{7}[A-Z]$/.test(n))e.push("a valid NSW WWC number (like WWC1234567V, from your clearance email)");
+  else if(st!=="NSW"&&!/^[A-Z0-9-]{5,20}$/.test(n))e.push("a valid check number for your state");
+  if(!f.wwccExpiry.value)e.push("your WWCC expiry date");else if(f.wwccExpiry.value<=t)e.push("a WWCC that hasn't expired");
+  if(!f.policeDate.value)e.push("your police check certificate date");else if(f.policeDate.value>t)e.push("a police check date that isn't in the future");
+  var file=f.policeFile.files&&f.policeFile.files[0];
+  if(!file)e.push("your police check certificate (PDF or photo)");
+  else if(!(file.type==="application/pdf"||/^image\//.test(file.type)))e.push("a police certificate that's a PDF or an image");
+  else if(file.size>MAXF)e.push("a certificate file under 5 MB (try a smaller photo)");
+  if(!f.fullName.value.trim())e.push("your full name as on your WWCC");
+  if(!f.truthful.checked)e.push("to confirm your check details are true");
+  return e;
+}
 function vals(f,n){return $$("input[name="+n+"]:checked",f).map(function(i){return i.value})}
 function onSubmit(kind){
   return function(e){
     e.preventDefault(); var f=e.target, out=$(kind==="volunteer"?"#m-help":"#m-need");
     var skills=vals(f,"skills");
     if(!skills.length){out.textContent=kind==="volunteer"?"Please tick at least one skill.":"Please tick at least one type of help.";out.className="msg err";return}
+    if(kind==="volunteer"){var errs=checkErrors(f);if(errs.length){out.innerHTML="<b>You can't be listed yet.</b> Volunteers must provide a WWCC and a police check. Please add: "+errs.map(esc).join("; ")+".";out.className="msg err";return}}
     var id=uid();
     var item={id:id,kind:kind,firstName:first(f.firstName.value),suburb:f.suburb.value.trim().slice(0,40),state:f.state.value,
       skills:skills,availability:vals(f,"availability"),about:hideContacts(f.about.value.trim()).slice(0,300),created:new Date().toISOString(),mine:true};
-    if(kind==="volunteer")item.checks=vals(f,"checks");
+    var privRec={fullName:f.fullName.value.trim(),phone:f.phone.value.trim(),email:f.email.value.trim()};
+    if(kind==="volunteer"){item.checksProvided=true;item.checks=f.firstAid.checked?["First aid"]:[];
+      privRec.wwccNumber=f.wwccNumber.value.trim().toUpperCase().replace(/\s+/g,"");privRec.wwccExpiry=f.wwccExpiry.value;privRec.policeDate=f.policeDate.value;privRec.wwccState=f.state.value;}
     else{item.forWho=f.forWho.value;item.when=f.when.value;item.date=f.date.value||""}
-    var pub=load(K.pub,[]);pub.unshift(item);
-    var priv=load(K.priv,{});priv[id]={fullName:f.fullName.value.trim(),phone:f.phone.value.trim(),email:f.email.value.trim()};
-    if(!save(K.pub,pub)||!save(K.priv,priv)){out.textContent="Sorry, this browser won't let the app save. Try turning off private browsing.";out.className="msg err";return}
-    f.reset(); out.textContent=""; toast(kind==="volunteer"?"Your volunteer profile is on the board":"Your request is on the board");
-    boardKind=kind==="volunteer"?"volunteers":"requests"; show("board");
+    var fail=function(){out.textContent="Sorry, this browser won't let the app save. Try turning off private browsing.";out.className="msg err"};
+    var finish=function(){
+      var pub=load(K.pub,[]);pub.unshift(item);var priv=load(K.priv,{});priv[id]=privRec;
+      if(!save(K.pub,pub)||!save(K.priv,priv)){delCert(id);fail();return}
+      f.reset(); out.textContent=""; toast(kind==="volunteer"?"Your volunteer profile is on the board":"Your request is on the board");
+      boardKind=kind==="volunteer"?"volunteers":"requests"; show("board");
+    };
+    if(kind==="volunteer"){var file=f.policeFile.files[0];privRec.certName=file.name;
+      putCert(id,file).then(finish,function(){out.textContent="Sorry, this browser couldn't keep your certificate file on this device, so you can't be listed yet. Try another browser, or turn off private browsing.";out.className="msg err"});}
+    else finish();
   };
 }
 
@@ -69,8 +100,10 @@ function allListings(){
   return load(K.pub,[]).concat(remote).filter(function(x){return rep.indexOf(x.id)<0});
 }
 function badge(it){
-  if(it.kind!=="volunteer"||!it.checks||!it.checks.length)return "";
-  return '<div class="badge" title="Self-declared. Coffeebreak does not verify checks.">✔ Checks (self-declared): '+esc(it.checks.join(", "))+'</div>';
+  if(it.kind!=="volunteer")return "";
+  return '<div class="badge" title="WWCC and police check provided by the volunteer. Coffeebreak has not verified them yet. Sight the originals and verify the WWCC with the OCG.">✔ Checks provided (not yet verified by Coffeebreak)</div>'+
+    ((it.checks||[]).indexOf("First aid")>=0?' <div class="badge fa">✚ First aid (self-declared)</div>':"")+
+    '<div class="meta small">WWCC and police check. Ask to sight the originals, and verify the WWCC with the OCG.</div>';
 }
 function card(it){
   var tag=it.kind==="volunteer"?"Volunteer":"Needs a hand";
@@ -84,20 +117,20 @@ function card(it){
     '<button class="link act-report">Report a concern</button></div></article>';
 }
 function renderBoard(){
-  $$(".tabs button").forEach(function(b){b.classList.toggle("on",b.dataset.b===boardKind)});
+  $$(".tabs button[data-b]").forEach(function(b){b.classList.toggle("on",b.dataset.b===boardKind)});
   var sub=$("#q-suburb").value.trim().toLowerCase(), type=$("#q-type").value;
   var want=boardKind==="volunteers"?"volunteer":"request";
-  var items=allListings().filter(function(x){return x.kind===want&&(!sub||String(x.suburb).toLowerCase().indexOf(sub)>=0)&&(!type||(x.skills||[]).indexOf(type)>=0)});
+  var items=allListings().filter(function(x){return x.kind===want&&(want!=="volunteer"||x.checksProvided===true)&&(!sub||String(x.suburb).toLowerCase().indexOf(sub)>=0)&&(!type||(x.skills||[]).indexOf(type)>=0)});
   $("#list").innerHTML=items.length?items.map(card).join(""):'<div class="empty">No '+(want==="volunteer"?"volunteers":"open requests")+' match yet.<br><button data-go="'+(want==="volunteer"?"help":"need")+'">'+(want==="volunteer"?"Be the first to offer help":"Post a request")+'</button></div>';
   $("#srcnote").textContent=remoteStatus==="ok"?"Showing listings saved on this device plus the shared Coffeebreak board.":"Showing listings saved on this device. The shared online board isn't connected here yet.";
 }
-$$(".tabs button").forEach(function(b){b.addEventListener("click",function(){boardKind=b.dataset.b;renderBoard()})});
+$$(".tabs button[data-b]").forEach(function(b){b.addEventListener("click",function(){boardKind=b.dataset.b;renderBoard()})});
 $("#q-suburb").addEventListener("input",renderBoard);$("#q-type").addEventListener("change",renderBoard);
 $("#list").addEventListener("click",function(e){
   var c=e.target.closest(".lcard");if(!c)return;var id=c.dataset.id;
   if(e.target.classList.contains("act-report"))report(id);
   else if(e.target.classList.contains("act-connect"))connect(id);
-  else if(e.target.classList.contains("act-del")){if(confirm("Remove this listing from the board?")){save(K.pub,load(K.pub,[]).filter(function(x){return x.id!==id}));var p=load(K.priv,{});delete p[id];save(K.priv,p);renderBoard()}}
+  else if(e.target.classList.contains("act-del")){if(confirm("Remove this listing from the board?")){delCert(id);save(K.pub,load(K.pub,[]).filter(function(x){return x.id!==id}));var p=load(K.priv,{});delete p[id];save(K.priv,p);renderBoard()}}
 });
 
 /* ---------- dialog ---------- */
@@ -128,7 +161,11 @@ function connect(id){
 }
 
 /* ---------- messages ---------- */
-function contactHtml(lid){var p=load(K.priv,{})[lid]||{};var bits=[];if(p.fullName)bits.push(esc(p.fullName));if(p.phone)bits.push("📞 "+esc(p.phone));if(p.email)bits.push("✉ "+esc(p.email));return bits.length?bits.join("<br>"):"No contact details were added."}
+function contactHtml(lid){var p=load(K.priv,{})[lid]||{};var bits=[];if(p.fullName)bits.push(esc(p.fullName));if(p.phone)bits.push("📞 "+esc(p.phone));if(p.email)bits.push("✉ "+esc(p.email));
+  if(p.wwccNumber)bits.push('<span class="wwcc">WWCC: <b>'+esc(p.wwccNumber)+'</b> (expires '+esc(p.wwccExpiry)+')<br>Police check dated '+esc(p.policeDate)+'<br><a href="https://ocg.nsw.gov.au/parents-and-carers/what-parents-need-know-about-working-children-check" target="_blank" rel="noopener">Verify this WWCC with the OCG</a>'+(myListings().some(function(m){return m.id===lid})?'<br><button class="small act-cert" data-l="'+esc(lid)+'">View my certificate</button>':"")+'</span>');
+  return bits.length?bits.join("<br>"):"No contact details were added."}
+function viewCert(lid){getCert(lid).then(function(r){if(!r||!r.blob){toast("No certificate saved on this device");return}var u=URL.createObjectURL(r.blob);var w=window.open(u,"_blank");if(!w){location.href=u}setTimeout(function(){URL.revokeObjectURL(u)},60000)},function(){toast("Couldn't open the certificate on this device")})}
+document.addEventListener("click",function(e){var b=e.target.closest(".act-cert");if(b){e.preventDefault();viewCert(b.dataset.l)}});
 function nameOf(lid){var l=find(lid);return l?l.firstName+" ("+l.suburb+")":"a listing"}
 function renderMsgs(){
   var thr=load(K.thr,[]), mineIds=myListings().map(function(m){return m.id});
@@ -140,7 +177,7 @@ function renderMsgs(){
     html+='<article class="thread" data-t="'+t.id+'"><h3>'+title+'</h3>'+
       t.msgs.map(function(m){return '<div class="bubble '+m.by+'">'+esc(m.text)+'</div>'}).join("");
     if(t.status==="agreed"){
-      html+='<div class="reveal"><b>You both agreed to share contact details.</b><div class="two"><div><small>'+esc(nameOf(t.from))+'</small><br>'+contactHtml(t.from)+'</div><div><small>'+esc(nameOf(t.to))+'</small><br>'+contactHtml(t.to)+'</div></div><p class="note">Meet in a public place first. No money handling.</p></div>';
+      html+='<div class="reveal"><b>You both agreed to share contact details.</b><div class="two"><div><small>'+esc(nameOf(t.from))+'</small><br>'+contactHtml(t.from)+'</div><div><small>'+esc(nameOf(t.to))+'</small><br>'+contactHtml(t.to)+'</div></div><p class="note">Meet in a public place first. No money handling. Families: ask to sight the volunteer\'s original police certificate and photo ID, and verify their WWCC with the OCG (family name, date of birth and WWC number). Only go ahead if it shows "Cleared".</p></div>';
     }else if(t.status==="declined"){
       html+='<p class="note">This request was declined. Contact details were not shared.</p>';
     }else if(iAmTo){
@@ -153,7 +190,7 @@ function renderMsgs(){
   });
   $("#threads").innerHTML=html||'<div class="empty">No messages yet. Find someone on the <button data-go="board">board</button>.</div>';
   var mine=myListings();
-  $("#mine").innerHTML=mine.length?'<div class="box"><b>Your listings:</b> '+mine.map(function(m){return esc(m.firstName)+" ("+(m.kind==="volunteer"?"volunteer":"request")+", "+esc(m.suburb)+")"}).join(" · ")+'</div>':"";
+  $("#mine").innerHTML=mine.length?'<div class="box"><b>Your listings:</b> '+mine.map(function(m){return esc(m.firstName)+" ("+(m.kind==="volunteer"?"volunteer":"request")+", "+esc(m.suburb)+")"+(m.kind==="volunteer"?' <button class="small act-cert" data-l="'+esc(m.id)+'">View my certificate</button>':"")}).join(" · ")+'</div>':"";
   updateCount();
 }
 $("#threads").addEventListener("click",function(e){
@@ -175,18 +212,35 @@ function updateCount(){
 function renderAbout(){
   $("#storenote").textContent=remoteStatus==="ok"?"Listings approved by Coffeebreak are shown from the shared board. What you post here is saved on this device and shows only first name and suburb.":"What you post is saved on this device only (in this browser). Only your first name and suburb show on the board. Your contact details never leave your device unless you agree to share them.";
 }
-$("#wipe").addEventListener("click",function(){if(confirm("Remove all your listings, messages and contact details from this device?")){[K.pub,K.priv,K.thr,K.rep,"cbv_report_log"].forEach(function(k){localStorage.removeItem(k)});toast("Removed from this device");updateCount()}});
+$("#wipe").addEventListener("click",function(){if(confirm("Remove all your listings, messages and contact details from this device?")){[K.pub,K.priv,K.thr,K.rep,"cbv_report_log"].forEach(function(k){localStorage.removeItem(k)});clearCerts();toast("Removed from this device");updateCount()}});
+/* ---------- sponsor ---------- */
+var sp={amt:20,name:"Supporter",freq:"once"};
+function copyText(t,label){(navigator.clipboard?navigator.clipboard.writeText(t):Promise.reject()).then(function(){toast(label+" copied")},function(){toast(label+": "+t)})}
+function spRef(){var who=$("#sp-ref").value.replace(/[^A-Za-z0-9 &.-]/g,"").trim();return ("CBVS "+(sp.name==="Business Sponsor"?"Business":sp.name)+(sp.freq==="monthly"?" Mthly":"")+(who?" "+who:"")).slice(0,35)}
+function renderSponsor(){
+  $$("#tiers .tier").forEach(function(b){b.classList.toggle("on",+b.dataset.amt===sp.amt)});
+  $$("#freq button").forEach(function(b){b.classList.toggle("on",b.dataset.f===sp.freq)});
+  $("#pc-amt").textContent="$"+sp.amt+" AUD"+(sp.freq==="monthly"?" / month":"");
+  $("#pc-ref").textContent=spRef();$("#monthlynote").hidden=sp.freq!=="monthly";
+  var q=$("#spqr");if(!q.dataset.done&&window.QRCode){new QRCode(q,{text:"darkokaz@gmx.com",width:160,height:160,colorDark:"#c2187a",colorLight:"#ffffff",correctLevel:QRCode.CorrectLevel.M});q.dataset.done="1"}
+}
+$("#tiers").addEventListener("click",function(e){var b=e.target.closest(".tier");if(!b)return;sp.amt=+b.dataset.amt;sp.name=b.dataset.name;renderSponsor()});
+$("#freq").addEventListener("click",function(e){var b=e.target.closest("button[data-f]");if(!b)return;sp.freq=b.dataset.f;renderSponsor()});
+$("#sp-ref").addEventListener("input",renderSponsor);
+document.addEventListener("click",function(e){var b=e.target.closest("[data-copy]");if(b)copyText(b.dataset.copy,"PayID")});
+$("#copyamt").addEventListener("click",function(){copyText(String(sp.amt),"Amount")});
+$("#copyref").addEventListener("click",function(){copyText(spRef(),"Reference")});
 $("#copypay").addEventListener("click",function(){var t="darkokaz@gmx.com";(navigator.clipboard?navigator.clipboard.writeText(t):Promise.reject()).then(function(){toast("PayID copied")},function(){toast("PayID: "+t)})});
 $("#report-general").addEventListener("click",function(){report(null)});
 
 /* ---------- shared board (read-only, public fields only) ---------- */
 function loadRemote(){
   var c=window.CBV_CONFIG;if(!c||!c.projectId||!window.fetch){remoteStatus="off";return}
-  var q='*[_type=="cbvListing" && approved==true] | order(_createdAt desc)[0...200]{"id":_id,kind,firstName,suburb,state,skills,availability,checks,about,forWho,when,date}';
+  var q='*[_type=="cbvListing" && approved==true && (kind=="request" || (kind=="volunteer" && checksProvided==true))] | order(_createdAt desc)[0...200]{"id":_id,kind,firstName,suburb,state,skills,availability,checks,checksProvided,about,forWho,when,date}';
   var url="https://"+c.projectId+".apicdn.sanity.io/v"+c.apiVersion+"/data/query/"+c.dataset+"?query="+encodeURIComponent(q);
   var ctl=window.AbortController?new AbortController():null;var tm=setTimeout(function(){if(ctl)ctl.abort()},6000);
   fetch(url,ctl?{signal:ctl.signal}:{}).then(function(r){if(!r.ok)throw 0;return r.json()}).then(function(d){
-    clearTimeout(tm);remote=(d.result||[]).filter(function(x){return x&&(x.kind==="volunteer"||x.kind==="request")}).map(function(x){x.firstName=first(x.firstName);x.about=hideContacts(x.about);return x});
+    clearTimeout(tm);remote=(d.result||[]).filter(function(x){return x&&(x.kind==="request"||(x.kind==="volunteer"&&x.checksProvided===true))}).map(function(x){x.firstName=first(x.firstName);x.about=hideContacts(x.about);return x});
     remoteStatus="ok";if($("#v-board").classList.contains("on"))renderBoard();
   }).catch(function(){clearTimeout(tm);remoteStatus="off";if($("#v-board").classList.contains("on"))renderBoard()});
 }
@@ -195,5 +249,5 @@ fillChecks();
 $("#f-help").addEventListener("submit",onSubmit("volunteer"));
 $("#f-need").addEventListener("submit",onSubmit("request"));
 loadRemote();updateCount();
-var h=location.hash.slice(1);if(["home","help","need","board","msgs","safety","about"].indexOf(h)>=0)show(h);
+var h=location.hash.slice(1);if(["home","help","need","board","msgs","safety","checks","sponsor","about"].indexOf(h)>=0)show(h);
 })();

@@ -55,3 +55,23 @@ dialog::backdrop{background:#5a184066}dialog .row{justify-content:flex-end}
 #toast.show{transform:translateX(-50%);opacity:1}
 footer{font-size:.75em;text-align:center;padding:16px;background:#ffc0dd;margin-top:20px}.flogo{height:36px;border-radius:50%;background:#fff}
 @media(max-width:480px){.two,.filters{grid-template-columns:1fr}h1{font-size:1.1em}.logo{height:46px;width:46px}}
+/* checks + sponsor */
+fieldset.req{border-color:#ff1493;background:#fff7fb}
+.box.checksnote{background:#fff7fb;border:2px dashed #ff9ccc}
+.badge.fa{background:#fff0f6;color:#a0105f;border-color:#ff9ccc}
+.meta.small{font-size:.8em}
+.wwcc{display:block;margin-top:6px;padding:6px 8px;background:#fff;border:1px solid #ff9ccc;border-radius:10px;font-size:.92em}
+.btnlink{display:inline-block;background:#ff1493;color:#fff!important;text-decoration:none;border-radius:20px;padding:9px 14px;margin:4px 4px 4px 0;font-weight:600}
+.btnlink.alt{background:#ffb6d9;color:#5a1840!important}
+.tiers{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px;margin:8px 0 12px}
+.tier{display:flex;flex-direction:column;align-items:center;gap:2px;background:#fff;color:#5a1840;border:2px solid #ff9ccc;border-radius:16px;padding:12px 8px}
+.tier span{font-size:1.4em;font-weight:800;color:#ff1493}.tier small{font-size:.75em}
+.tier.on{background:#ff1493;color:#fff;border-color:#ff1493}.tier.on span{color:#fff}
+.paycard{background:linear-gradient(135deg,#fff,#ffe4f1);border:2px solid #ff1493;border-radius:18px;padding:14px;margin-top:10px}
+.pc-top{display:flex;align-items:center;gap:8px;margin-bottom:8px}.pc-top img{width:36px;height:36px;border-radius:50%}
+.fld{display:flex;align-items:center;gap:8px;flex-wrap:wrap;background:#fff;border-radius:10px;padding:7px 10px;margin:5px 0}
+.fld span{color:#a0105f;font-size:.85em;min-width:72px}.fld b{flex:1;word-break:break-all}
+.qr{display:flex;justify-content:center;margin:10px 0}.qr img,.qr canvas{border:6px solid #fff;border-radius:8px}
+.wall{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px}
+.slot{border:2px dashed #ff9ccc;border-radius:14px;padding:22px 8px;text-align:center;color:#c2187a;background:#fff}
+@media(min-width:700px){#nav{flex-wrap:wrap;justify-content:center}}
