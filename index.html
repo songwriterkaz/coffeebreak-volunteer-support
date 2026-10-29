@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="en-AU">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Coffeebreak Volunteer Support</title>
+<meta name="description" content="Free pink Coffeebreak board that matches caring volunteers with people, carers and families who want a hand outside the NDIS. Newcastle, the Hunter and anywhere in Australia.">
+<link rel="icon" href="icon-192.png">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header>
+  <div class="brand"><img src="logo.png" alt="Coffeebreak logo" class="logo"><div><h1>Coffeebreak Volunteer Support</h1><p class="tag">Caring volunteers and people who want a hand, outside the NDIS</p></div></div>
+  <nav id="nav">
+    <button data-v="home" class="on">Home</button>
+    <button data-v="help">I want to help</button>
+    <button data-v="need">I need a hand</button>
+    <button data-v="board">Board</button>
+    <button data-v="msgs">Messages <span id="msgcount" class="pill" hidden></span></button>
+    <button data-v="safety">Safety</button>
+    <button data-v="about">About</button>
+  </nav>
+</header>
+<div class="emerg">Not an emergency service. In an emergency call <b>000</b>. For crisis support call Lifeline <b>13 11 14</b>.</div>
+<main>
+<section id="v-home" class="view on">
+  <div class="hero">
+    <h2>Real people helping real people</h2>
+    <p>A free board for volunteers who care and want to help, and for people, carers and families who would like a hand without going through the NDIS. Mainly Newcastle and the Hunter, open anywhere in Australia.</p>
+    <div class="two">
+      <button class="big" data-go="help">I want to help</button>
+      <button class="big alt" data-go="need">I need a hand</button>
+    </div>
+    <button class="link" data-go="board">Browse the board</button>
+  </div>
+  <div class="box">
+    <h3>How it works</h3>
+    <ol>
+      <li>Post a volunteer profile or a request. Only your first name and suburb are shown.</li>
+      <li>Browse the board and send a connect request with a short message.</li>
+      <li>Contact details stay hidden until both of you agree to share them.</li>
+      <li>Meet in a public place first. No money changes hands.</li>
+    </ol>
+  </div>
+  <div class="box"><h3>Kinds of help</h3><div class="chips" id="homechips"></div></div>
+</section>
+
+<section id="v-help" class="view">
+  <h2>I want to help</h2>
+  <p class="note">Your profile shows your first name and suburb only. Your full name, phone and email stay private until you agree to share them with someone.</p>
+  <form id="f-help" autocomplete="on">
+    <fieldset><legend>Public (shown on the board)</legend>
+      <label>First name<input name="firstName" required maxlength="30"></label>
+      <label>Suburb<input name="suburb" required maxlength="40" list="suburbs" placeholder="e.g. Maitland"></label>
+      <label>State<select name="state"></select></label>
+      <div class="lbl">Skills I can offer</div><div class="checks" data-group="skills"></div>
+      <div class="lbl">When I'm available</div><div class="checks" data-group="availability"></div>
+      <div class="lbl">Checks I hold (self-declared)</div><div class="checks" data-group="checks"></div>
+      <label>A little about me<textarea name="about" maxlength="300" rows="3" placeholder="Friendly, retired, happy to drive, love gardening..."></textarea></label>
+    </fieldset>
+    <fieldset><legend>Private (only shared when both agree)</legend>
+      <label>Full name<input name="fullName" maxlength="60"></label>
+      <label>Phone<input name="phone" type="tel" maxlength="20"></label>
+      <label>Email<input name="email" type="email" maxlength="80"></label>
+    </fieldset>
+    <label class="tick"><input type="checkbox" name="agree" required> I have read the <a href="#safety" data-go="safety">safety guidelines</a>. I understand I'm a volunteer, not an NDIS provider, and I won't handle anyone's money.</label>
+    <button class="big" type="submit">Post my volunteer profile</button>
+    <p class="msg" id="m-help"></p>
+  </form>
+</section>
+
+<section id="v-need" class="view">
+  <h2>I need a hand</h2>
+  <p class="note">Your request shows your first name and suburb only. Please don't include health details or other people's names.</p>
+  <form id="f-need" autocomplete="on">
+    <fieldset><legend>Public (shown on the board)</legend>
+      <label>First name<input name="firstName" required maxlength="30"></label>
+      <label>Suburb<input name="suburb" required maxlength="40" list="suburbs" placeholder="e.g. Cessnock"></label>
+      <label>State<select name="state"></select></label>
+      <label>The help is for<select name="forWho"><option>Me</option><option>Someone I care for</option><option>Our family</option></select></label>
+      <div class="lbl">Type of help</div><div class="checks" data-group="skills"></div>
+      <label>When<select name="when"><option>Once off</option><option>Weekly</option><option>Fortnightly</option><option>Now and then</option></select></label>
+      <div class="lbl">Best times</div><div class="checks" data-group="availability"></div>
+      <label>Start from (optional)<input name="date" type="date"></label>
+      <label>A short note<textarea name="about" maxlength="300" rows="3" placeholder="e.g. A lift to the shops on Tuesdays and a hand carrying bags"></textarea></label>
+    </fieldset>
+    <fieldset><legend>Private (only shared when both agree)</legend>
+      <label>Full name<input name="fullName" maxlength="60"></label>
+      <label>Phone<input name="phone" type="tel" maxlength="20"></label>
+      <label>Email<input name="email" type="email" maxlength="80"></label>
+    </fieldset>
+    <label class="tick"><input type="checkbox" name="agree" required> I have read the <a href="#safety" data-go="safety">safety guidelines</a> and I'll meet in a public place first.</label>
+    <button class="big" type="submit">Post my request</button>
+    <p class="msg" id="m-need"></p>
+  </form>
+</section>
+
+<section id="v-board" class="view">
+  <h2>The board</h2>
+  <div class="tabs"><button data-b="requests" class="on">Open requests</button><button data-b="volunteers">Volunteers</button></div>
+  <div class="filters">
+    <input id="q-suburb" placeholder="Filter by suburb" list="suburbs" aria-label="Filter by suburb">
+    <select id="q-type" aria-label="Filter by type"><option value="">All types of help</option></select>
+  </div>
+  <p class="note" id="srcnote"></p>
+  <div id="list"></div>
+</section>
+
+<section id="v-msgs" class="view">
+  <h2>Messages and connect requests</h2>
+  <p class="note">Contact details stay hidden until both people agree. Phone numbers and emails typed into messages are hidden automatically.</p>
+  <div id="mine"></div>
+  <div id="threads"></div>
+</section>
+
+<section id="v-safety" class="view">
+  <h2>Safety and guidelines</h2>
+  <div class="box warn"><b>This is not an emergency service.</b> In an emergency call <b>000</b>. For crisis support call Lifeline <b>13 11 14</b> (24 hours).</div>
+  <div class="box"><h3>For everyone</h3><ul>
+    <li>Meet in a public place first, like a library, cafe or shopping centre. Tell a friend where you're going.</li>
+    <li>No money handling. Volunteers never hold cash, cards, PINs or bank details, and never pay for things on someone's behalf.</li>
+    <li>Only share contact details when you're ready. The board keeps them hidden until both of you agree.</li>
+    <li>Keep health details and other people's names off the board.</li>
+    <li>You can say no or stop at any time.</li>
+  </ul></div>
+  <div class="box"><h3>For volunteers</h3><ul>
+    <li>Volunteers here are not NDIS providers and are not paid. This is informal, community help.</li>
+    <li>We recommend a Working With Children Check and a police check, plus first aid if you can.</li>
+    <li>The "checks" badge is <b>self-declared</b>. Coffeebreak does not verify checks. Ask to see them before you start.</li>
+    <li>Use your own car insurance if you drive someone, and stay within what you're comfortable doing.</li>
+  </ul></div>
+  <div class="box"><h3>Report a concern</h3>
+    <p>Every listing has a <b>Report a concern</b> button. Reported listings are hidden straight away on your device.</p>
+    <p>If someone is in danger call <b>000</b>. To report a crime that isn't urgent call Police Assistance Line <b>131 444</b>.</p>
+    <button id="report-general" class="danger">Report a concern</button>
+  </div>
+</section>
+
+<section id="v-about" class="view">
+  <h2>About</h2>
+  <div class="box"><p>Coffeebreak Volunteer Support is a free community board made by Coffeebreak for people who care, want to help, and would rather do it outside the NDIS.</p>
+  <p>It is <b>not affiliated with the NDIS or the NDIA</b>, and volunteers here are not NDIS providers.</p>
+  <p class="note" id="storenote"></p>
+  <button id="wipe" class="alt">Remove everything I posted from this device</button></div>
+  <div class="box pay"><h3>Support Coffeebreak (optional)</h3><p>The board is free. If you'd like to chip in:</p>
+  <p class="payid">Pay by PayID (Teachers Mutual Bank): <b>darkokaz@gmx.com</b> <button id="copypay" class="small">Copy</button></p></div>
+</section>
+</main>
+<datalist id="suburbs"></datalist>
+<dialog id="dlg"><form method="dialog" id="dlgform"><div id="dlgbody"></div><div class="row"><button value="cancel" class="alt">Cancel</button><button value="ok" id="dlgok">Send</button></div></form></dialog>
+<div id="toast" role="status"></div>
+<footer>
+  <img src="logo.png" alt="" class="flogo">
+  <p>© Karen O'Brien (Coffeebreak). Karen O'Brien keeps all rights to this app, its design, name and logo. Please don't copy it or make your own version. Third-party brands named belong to their owners. Not affiliated with the NDIS or NDIA. Not an emergency service: call 000, or Lifeline 13 11 14.</p>
+</footer>
+<script src="config.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
